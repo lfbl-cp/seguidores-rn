@@ -1,0 +1,135 @@
+---
+title: "Seguidores · Governo do RN 2º turno"
+format:
+  dashboard:
+    scrolling: true
+    theme: [cosmo, custom.scss]
+lang: pt-BR
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+source("R/funcoes.R")
+
+candidatos <- ler_candidatos()
+eventos <- ler_eventos()
+long <- ler_seguidores(candidatos)
+diario <- calcular_diario(long)
+semanal <- calcular_semanal(diario)
+resumo <- resumir(diario, candidatos)
+diferenca <- calcular_diferenca(long, candidatos)
+gerado_em <- format(Sys.time(), "%d/%m/%Y às %H:%M", tz = FUSO)
+```
+
+# Painel
+
+## Cartões {height=330px}
+
+```{r}
+#| label: card-1
+card_candidato(candidatos[1, ], resumo[1, ])
+```
+
+```{r}
+#| label: card-comparativo
+card_comparativo(diferenca, candidatos, resumo)
+```
+
+```{r}
+#| label: card-2
+card_candidato(candidatos[2, ], resumo[2, ])
+```
+
+## Evolução {.tabset height=460px}
+
+```{r}
+#| label: evolucao-absoluto
+#| title: Seguidores
+grafico_evolucao(diario, candidatos, eventos, "absoluto")
+```
+
+```{r}
+#| label: evolucao-pct
+#| title: Crescimento acumulado (%)
+grafico_evolucao(diario, candidatos, eventos, "pct")
+```
+
+## Saldos {height=420px}
+
+### Diário {.tabset}
+
+```{r}
+#| label: saldo-diario
+#| title: Saldo diário
+grafico_saldo_diario(diario, candidatos, eventos, "absoluto")
+```
+
+```{r}
+#| label: saldo-diario-pct
+#| title: Saldo diário (%)
+grafico_saldo_diario(diario, candidatos, eventos, "pct")
+```
+
+### Semanal
+
+```{r}
+#| label: saldo-semanal
+#| title: Saldo semanal (segunda a domingo)
+grafico_saldo_semanal(semanal, candidatos)
+```
+
+## Estatísticas {height=720px}
+
+```{r}
+#| label: estatisticas
+#| title: Estatísticas descritivas
+tagList(
+  tabela_resumo(resumo, candidatos),
+  p(class = "rodape",
+    paste0("Seguidores no ", REDE, ", coleta manual diária. ",
+           "Fotos: TSE (DivulgaCandContas). Página gerada em ", gerado_em, "."))
+)
+```
+
+```{r}
+#| label: diferenca
+#| title: !expr paste0("Diferença de seguidores (", candidatos$nome_urna[2], " − ", candidatos$nome_urna[1], ")")
+grafico_diferenca(diferenca, eventos)
+```
+
+# Dados
+
+```{r}
+#| label: dados
+#| title: Coletas e saldos diários
+tabela_dados(diario, candidatos)
+```
+
+# Metodologia
+
+::: {.card title="Como os números são calculados"}
+
+**Coleta.** O número de seguidores de cada candidato no `r REDE` é anotado manualmente uma vez por dia, sempre no mesmo horário, em `data/seguidores.csv`. A série começa em `r fmt_data(min(long$data), ano = TRUE)`. Não há dados do 1º turno.
+
+**Saldo diário.** É a diferença de seguidores entre duas coletas seguidas. Se um dia ficar sem coleta, o saldo do intervalo é dividido pelo número de dias, e o gráfico indica "média de N dias".
+
+**Saldo diário (%).** É o saldo diário dividido pelos seguidores da coleta anterior. Como as bases têm tamanhos muito diferentes, o percentual é a comparação mais justa de ritmo de crescimento.
+
+**Saldo semanal.** É a soma dos saldos de segunda a domingo. Uma semana com menos de 7 dias de dados aparece como "parcial".
+
+**Saldo 7 dias.** É a soma dos saldos das coletas dos últimos 7 dias, contando a partir da última coleta.
+
+**Média diária.** É o ganho acumulado desde a primeira coleta dividido pelos dias decorridos.
+
+**Crescimento médio diário.** É a taxa composta: ((atual ÷ inicial)^(1/dias) − 1).
+
+**Projeção.** Soma aos seguidores atuais a média diária vezes os dias que faltam até `r fmt_data(DATA_ELEICAO, ano = TRUE)`. Supõe que o ritmo médio se mantém, então serve só de referência.
+
+**Fotos.** As fotos são as oficiais de divulgação de candidaturas do TSE.
+
+:::

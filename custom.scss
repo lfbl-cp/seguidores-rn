@@ -1,0 +1,187 @@
+/*-- scss:defaults --*/
+
+$font-family-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+$body-bg: #f9f9f7;
+$body-color: #0b0b0b;
+$navbar-bg: #2b2b29;
+$navbar-fg: #f0efec;
+$navbar-hl: #ffffff;
+$border-radius: 10px;
+
+/*-- scss:rules --*/
+
+:root {
+  --tinta: #0b0b0b;
+  --tinta-2: #52514e;
+  --tinta-muda: #898781;
+  --grade: #e1e0d9;
+  --superficie: #ffffff;
+}
+
+.card {
+  background: var(--superficie);
+  border: 1px solid rgba(11, 11, 11, 0.08);
+}
+
+.card-header {
+  background: transparent;
+  font-weight: 600;
+  color: var(--tinta);
+}
+
+/* Cartões de candidato */
+
+/* O dashboard marca todo HTML como contêiner flex de preenchimento;
+   nos cartões o fluxo normal de bloco é o desejado. */
+.cand-card.html-fill-container,
+.comp-card.html-fill-container,
+.cand-card .html-fill-container,
+.comp-card .html-fill-container {
+  display: block;
+}
+
+.cand-card,
+.comp-card {
+  padding: 4px 6px;
+}
+
+.cand-card {
+  border-left: 4px solid var(--cor);
+  padding-left: 14px;
+}
+
+.cand-card .cand-topo.html-fill-container,
+.cand-topo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.cand-foto {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: center 18%;
+  box-shadow: 0 0 0 3px var(--superficie), 0 0 0 5px var(--cor);
+  flex: none;
+}
+
+.cand-nome {
+  font-size: 1.25rem;
+  font-weight: 650;
+  line-height: 1.2;
+  color: var(--tinta);
+}
+
+.cand-partido,
+.cand-hero-rot,
+.cand-stat-rot,
+.cand-stat-nota,
+.comp-linha {
+  color: var(--tinta-2);
+  font-size: 0.82rem;
+}
+
+.cand-hero {
+  font-size: 2.4rem;
+  font-weight: 650;
+  line-height: 1.1;
+  color: var(--tinta);
+}
+
+.comp-linha {
+  margin-top: 6px;
+}
+
+.cand-card .cand-stats.html-fill-container,
+.comp-card .cand-stats.html-fill-container,
+.cand-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--grade);
+}
+
+.cand-stat-val {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--tinta);
+}
+
+.cand-stat-nota {
+  color: var(--tinta-muda);
+  font-size: 0.75rem;
+}
+
+.aguardando {
+  color: var(--tinta-muda);
+  padding: 48px 12px;
+  text-align: center;
+}
+
+/* Tabela de estatísticas */
+
+.tab-resumo {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.tab-resumo th,
+.tab-resumo td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--grade);
+  vertical-align: top;
+}
+
+.tab-resumo thead th {
+  text-align: right;
+  font-weight: 650;
+  color: var(--tinta);
+  border-bottom: 1px solid var(--tinta-muda);
+}
+
+.tab-resumo tbody th {
+  font-weight: 500;
+  color: var(--tinta-2);
+}
+
+.tab-resumo td {
+  text-align: right;
+  color: var(--tinta);
+}
+
+.tab-ajuda {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--tinta-muda);
+}
+
+.marcador {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.rodape {
+  color: var(--tinta-muda);
+  font-size: 0.8rem;
+  margin: 14px 0 0;
+}
+
+table.dataTable {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 576px) {
+  .cand-hero {
+    font-size: 2rem;
+  }
+}
