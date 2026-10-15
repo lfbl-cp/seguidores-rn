@@ -6,7 +6,6 @@ library(htmltools)
 
 # ---- Configuração -----------------------------------------------------------
 
-REDE <- "Instagram"
 DATA_ELEICAO <- as.Date("2026-10-25")
 FUSO <- "America/Fortaleza"
 MESES <- c("jan", "fev", "mar", "abr", "mai", "jun",
@@ -32,62 +31,107 @@ ler_eventos <- function(arquivo = "data/eventos.csv") {
   ev[!is.na(ev$data), ]
 }
 
-# Aceita AAAA-MM-DD ou DD/MM/AAAA
-ler_data <- function(x) {
-  d <- as.Date(x, format = "%Y-%m-%d")
-  d[is.na(d)] <- as.Date(x[is.na(d)], format = "%d/%m/%Y")
+# Uma linha por rede social: id, nome exibido e planilha da coleta
+ler_redes <- function(arquivo = "data/redes.csv") {
+  read.csv(arquivo, colClasses = "character", fileEncoding = "UTF-8")
+}
+
+# ---- Células da planilha ----------------------------------------------------
+# A planilha é lida célula a célula (col_types = "list") para aceitar tanto
+# datas e números do Excel quanto texto digitado ("16/10/2026", "151.340").
+
+celula_vazia <- function(v) {
+  length(v) == 0 || is.na(v[1]) || trimws(as.character(v[1])) == ""
+}
+
+# Data do Excel, número de série ou texto AAAA-MM-DD / DD/MM/AAAA
+para_data <- function(v) {
+  if (celula_vazia(v)) return(as.Date(NA))
+  if (inherits(v, c("POSIXct", "Date"))) return(as.Date(format(v, "%Y-%m-%d", tz = "UTC")))
+  if (is.numeric(v)) return(as.Date(v, origin = "1899-12-30"))
+  txt <- trimws(as.character(v))
+  d <- as.Date(txt, format = "%Y-%m-%d")
+  if (is.na(d)) d <- as.Date(txt, format = "%d/%m/%Y")
+  # descarta anos implausíveis (ex.: "16-10-26" lido como ano 0016)
+  if (!is.na(d) && !format(d, "%Y") %in% as.character(2020:2100)) d <- as.Date(NA)
   d
 }
 
-# Lê data/seguidores.csv (uma linha por dia, uma coluna por candidato) e
+# Número inteiro não negativo; NA se vazia, NaN se inválida
+para_numero <- function(v) {
+  if (celula_vazia(v)) return(NA_real_)
+  if (is.numeric(v)) return(if (v >= 0 && v == round(v)) as.numeric(v) else NaN)
+  txt <- trimws(as.character(v))
+  if (!grepl("^[0-9. ]+$", txt)) return(NaN)
+  as.numeric(gsub("[. ]", "", txt))
+}
+
+# Lê a planilha de uma rede (uma linha por dia, uma coluna por candidato) e
 # devolve o formato longo. Interrompe a renderização com uma mensagem clara
 # se houver erro de digitação, para o site nunca publicar dados quebrados.
-ler_seguidores <- function(candidatos, arquivo = "data/seguidores.csv") {
-  bruto <- read.csv(arquivo, colClasses = "character", fileEncoding = "UTF-8",
-                    strip.white = TRUE, check.names = FALSE)
+ler_seguidores <- function(arquivo, candidatos) {
+  nome <- basename(arquivo)
+  bruto <- readxl::read_excel(arquivo, sheet = 1, col_types = "list",
+                              .name_repair = "minimal")
   names(bruto) <- tolower(trimws(names(bruto)))
 
   if (!"data" %in% names(bruto)) {
-    stop("data/seguidores.csv precisa de uma coluna 'data'.", call. = FALSE)
+    stop("A planilha '", nome, "' precisa de uma coluna 'data'.", call. = FALSE)
   }
   ausentes <- setdiff(candidatos$id, names(bruto))
   if (length(ausentes)) {
-    stop("Coluna(s) ausente(s) em data/seguidores.csv: ",
+    stop("Coluna(s) ausente(s) na planilha '", nome, "': ",
          paste(ausentes, collapse = ", "), call. = FALSE)
   }
 
-  linha_csv <- seq_len(nrow(bruto)) + 1
-  vazia <- bruto$data == ""
+  linha <- seq_len(nrow(bruto)) + 1
+  vazia <- vapply(bruto$data, celula_vazia, logical(1))
   bruto <- bruto[!vazia, , drop = FALSE]
-  linha_csv <- linha_csv[!vazia]
+  linha <- linha[!vazia]
 
-  datas <- ler_data(bruto$data)
+  datas <- do.call(c, c(list(as.Date(character())), lapply(bruto$data, para_data)))
   if (anyNA(datas)) {
-    stop("Data inválida em data/seguidores.csv, linha(s) ",
-         paste(linha_csv[is.na(datas)], collapse = ", "),
-         ". Use o formato AAAA-MM-DD (ex.: 2026-10-16).", call. = FALSE)
+    stop("Data inválida na planilha '", nome, "', linha(s) ",
+         paste(linha[is.na(datas)], collapse = ", "),
+         ". Use uma data do Excel ou o formato DD/MM/AAAA.", call. = FALSE)
   }
   if (anyDuplicated(datas)) {
-    stop("Data repetida em data/seguidores.csv: ",
-         paste(unique(format(datas[duplicated(datas)])), collapse = ", "),
+    stop("Data repetida na planilha '", nome, "': ",
+         paste(unique(format(datas[duplicated(datas)], "%d/%m/%Y")), collapse = ", "),
          call. = FALSE)
   }
 
   partes <- lapply(candidatos$id, function(id) {
-    txt <- bruto[[id]]
-    invalido <- !grepl("^[0-9. ]*$", txt)
+    valor <- vapply(bruto[[id]], para_numero, numeric(1))
+    invalido <- is.nan(valor)
     if (any(invalido)) {
-      stop("Valor inválido na coluna '", id, "' de data/seguidores.csv, linha(s) ",
-           paste(linha_csv[invalido], collapse = ", "),
-           ". Use apenas números (ex.: 150953).", call. = FALSE)
+      stop("Valor inválido na coluna '", id, "' da planilha '", nome, "', linha(s) ",
+           paste(linha[invalido], collapse = ", "),
+           ". Use apenas números inteiros (ex.: 150953).", call. = FALSE)
     }
-    valor <- suppressWarnings(as.numeric(gsub("[. ]", "", txt)))
     data.frame(data = datas, candidato = id, seguidores = valor)
   })
 
   bind_rows(partes) |>
     filter(!is.na(seguidores)) |>
     arrange(candidato, data)
+}
+
+# Tudo o que uma página de rede precisa
+carregar_rede <- function(rede, candidatos) {
+  long <- ler_seguidores(rede$arquivo, candidatos)
+  if (!nrow(long)) {
+    stop("A planilha '", basename(rede$arquivo), "' não tem nenhuma coleta.", call. = FALSE)
+  }
+  diario <- calcular_diario(long)
+  list(
+    nome = rede$nome,
+    long = long,
+    diario = diario,
+    semanal = calcular_semanal(diario),
+    resumo = resumir(diario, candidatos),
+    diferenca = calcular_diferenca(long, candidatos)
+  )
 }
 
 # ---- Métricas ---------------------------------------------------------------
@@ -219,7 +263,7 @@ nota_intervalo <- function(dias) {
   if (is.na(dias) || dias <= 1) NULL else paste0("média de ", dias, " dias")
 }
 
-card_candidato <- function(cand, r) {
+card_candidato <- function(cand, r, rede) {
   div(
     class = "cand-card", style = paste0("--cor:", cand$cor),
     div(class = "cand-topo",
@@ -229,7 +273,7 @@ card_candidato <- function(cand, r) {
             div(class = "cand-partido", paste(cand$partido, "·", cand$numero)))),
     div(class = "cand-hero", fmt_num(r$atual)),
     div(class = "cand-hero-rot",
-        paste0("seguidores no ", REDE, " em ", fmt_data(r$data_atual))),
+        paste0("seguidores no ", rede, " em ", fmt_data(r$data_atual))),
     div(class = "cand-stats",
         estatistica("Saldo do dia", fmt_num(r$ultimo_saldo, sinal = TRUE),
                     nota_intervalo(r$ultimo_dias)),

@@ -18,103 +18,51 @@ source("R/funcoes.R")
 
 candidatos <- ler_candidatos()
 eventos <- ler_eventos()
-long <- ler_seguidores(candidatos)
-diario <- calcular_diario(long)
-semanal <- calcular_semanal(diario)
-resumo <- resumir(diario, candidatos)
-diferenca <- calcular_diferenca(long, candidatos)
+redes <- ler_redes()
+dados <- setNames(lapply(seq_len(nrow(redes)), function(i)
+  carregar_rede(redes[i, ], candidatos)), redes$id)
 gerado_em <- format(Sys.time(), "%d/%m/%Y às %H:%M", tz = FUSO)
 ```
 
-# Painel
-
-## Cartões {height=330px}
+# Instagram
 
 ```{r}
-#| label: card-1
-card_candidato(candidatos[1, ], resumo[1, ])
+#| include: false
+rd <- dados$instagram
 ```
+
+{{< include _painel_rede.qmd >}}
+
+# TikTok
 
 ```{r}
-#| label: card-comparativo
-card_comparativo(diferenca, candidatos, resumo)
+#| include: false
+rd <- dados$tiktok
 ```
 
-```{r}
-#| label: card-2
-card_candidato(candidatos[2, ], resumo[2, ])
-```
-
-## Evolução {.tabset height=460px}
-
-```{r}
-#| label: evolucao-absoluto
-#| title: Seguidores
-grafico_evolucao(diario, candidatos, eventos, "absoluto")
-```
-
-```{r}
-#| label: evolucao-pct
-#| title: Crescimento acumulado (%)
-grafico_evolucao(diario, candidatos, eventos, "pct")
-```
-
-## Saldos {height=420px}
-
-### Diário {.tabset}
-
-```{r}
-#| label: saldo-diario
-#| title: Saldo diário
-grafico_saldo_diario(diario, candidatos, eventos, "absoluto")
-```
-
-```{r}
-#| label: saldo-diario-pct
-#| title: Saldo diário (%)
-grafico_saldo_diario(diario, candidatos, eventos, "pct")
-```
-
-### Semanal
-
-```{r}
-#| label: saldo-semanal
-#| title: Saldo semanal (segunda a domingo)
-grafico_saldo_semanal(semanal, candidatos)
-```
-
-## Estatísticas {height=720px}
-
-```{r}
-#| label: estatisticas
-#| title: Estatísticas descritivas
-tagList(
-  tabela_resumo(resumo, candidatos),
-  p(class = "rodape",
-    paste0("Seguidores no ", REDE, ", coleta manual diária. ",
-           "Fotos: TSE (DivulgaCandContas). Página gerada em ", gerado_em, "."))
-)
-```
-
-```{r}
-#| label: diferenca
-#| title: !expr paste0("Diferença de seguidores (", candidatos$nome_urna[2], " − ", candidatos$nome_urna[1], ")")
-grafico_diferenca(diferenca, eventos)
-```
+{{< include _painel_rede.qmd >}}
 
 # Dados
 
+## {.tabset}
+
 ```{r}
-#| label: dados
-#| title: Coletas e saldos diários
-tabela_dados(diario, candidatos)
+#| title: Instagram
+tabela_dados(dados$instagram$diario, candidatos)
+```
+
+```{r}
+#| title: TikTok
+tabela_dados(dados$tiktok$diario, candidatos)
 ```
 
 # Metodologia
 
 ::: {.card title="Como os números são calculados"}
 
-**Coleta.** O número de seguidores de cada candidato no `r REDE` é anotado manualmente uma vez por dia, sempre no mesmo horário, em `data/seguidores.csv`. A série começa em `r fmt_data(min(long$data), ano = TRUE)`. Não há dados do 1º turno.
+**Coleta.** O número de seguidores de cada candidato em cada rede é anotado manualmente uma vez por dia, sempre no mesmo horário. Cada rede tem sua própria planilha na pasta `data/`. Início das séries: `r paste0(redes$nome, " em ", sapply(dados, function(d) fmt_data(min(d$long$data), ano = TRUE)), collapse = "; ")`. Não há dados do 1º turno.
+
+**Redes separadas.** Os números de cada rede são analisados à parte e nunca somados, porque a mesma pessoa pode seguir o candidato em mais de uma rede.
 
 **Saldo diário.** É a diferença de seguidores entre duas coletas seguidas. Se um dia ficar sem coleta, o saldo do intervalo é dividido pelo número de dias, e o gráfico indica "média de N dias".
 
@@ -129,6 +77,8 @@ tabela_dados(diario, candidatos)
 **Crescimento médio diário.** É a taxa composta: ((atual ÷ inicial)^(1/dias) − 1).
 
 **Projeção.** Soma aos seguidores atuais a média diária vezes os dias que faltam até `r fmt_data(DATA_ELEICAO, ano = TRUE)`. Supõe que o ritmo médio se mantém, então serve só de referência.
+
+**Números arredondados.** Quando a rede exibe o total arredondado (por exemplo, "162,7 mil"), o saldo diário só muda em passos de 100 e fica impreciso. Sempre que possível, registre o número exato.
 
 **Fotos.** As fotos são as oficiais de divulgação de candidaturas do TSE.
 

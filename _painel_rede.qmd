@@ -1,0 +1,66 @@
+<!-- Painel de uma rede social. Incluído em index.qmd uma vez por rede,
+     depois de um bloco que define `rd <- dados$<id da rede>`. -->
+
+## Cartões {height=330px}
+
+```{r}
+card_candidato(candidatos[1, ], rd$resumo[1, ], rd$nome)
+```
+
+```{r}
+card_comparativo(rd$diferenca, candidatos, rd$resumo)
+```
+
+```{r}
+card_candidato(candidatos[2, ], rd$resumo[2, ], rd$nome)
+```
+
+## Evolução {.tabset height=460px}
+
+```{r}
+#| title: Seguidores
+grafico_evolucao(rd$diario, candidatos, eventos, "absoluto")
+```
+
+```{r}
+#| title: Crescimento acumulado (%)
+grafico_evolucao(rd$diario, candidatos, eventos, "pct")
+```
+
+## Saldos {height=420px}
+
+### Diário {.tabset}
+
+```{r}
+#| title: Saldo diário
+grafico_saldo_diario(rd$diario, candidatos, eventos, "absoluto")
+```
+
+```{r}
+#| title: Saldo diário (%)
+grafico_saldo_diario(rd$diario, candidatos, eventos, "pct")
+```
+
+### Semanal
+
+```{r}
+#| title: Saldo semanal (segunda a domingo)
+grafico_saldo_semanal(rd$semanal, candidatos)
+```
+
+## Estatísticas {height=720px}
+
+```{r}
+#| title: Estatísticas descritivas
+tagList(
+  tabela_resumo(rd$resumo, candidatos),
+  p(class = "rodape",
+    paste0("Seguidores no ", rd$nome, ", coleta manual diária. ",
+           "Fotos: TSE (DivulgaCandContas). Página gerada em ", gerado_em, "."))
+)
+```
+
+```{r}
+#| title: !expr paste0("Diferença de seguidores (", candidatos$nome_urna[2], " − ", candidatos$nome_urna[1], ")")
+grafico_diferenca(rd$diferenca, eventos)
+```

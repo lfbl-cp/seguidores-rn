@@ -36,6 +36,7 @@ jobs:
             any::plotly
             any::DT
             any::htmltools
+            any::readxl
 
       - uses: quarto-dev/quarto-actions/setup@v2
 
