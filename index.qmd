@@ -33,36 +33,18 @@ rd <- dados$instagram
 
 {{< include _painel_rede.qmd >}}
 
-# TikTok
-
-```{r}
-#| include: false
-rd <- dados$tiktok
-```
-
-{{< include _painel_rede.qmd >}}
-
 # Dados
 
-## {.tabset}
-
 ```{r}
-#| title: Instagram
+#| title: Coletas e saldos diários
 tabela_dados(dados$instagram$diario, candidatos)
-```
-
-```{r}
-#| title: TikTok
-tabela_dados(dados$tiktok$diario, candidatos)
 ```
 
 # Metodologia
 
 ::: {.card title="Como os números são calculados"}
 
-**Coleta.** O número de seguidores de cada candidato em cada rede é anotado manualmente uma vez por dia, sempre no mesmo horário. Cada rede tem sua própria planilha na pasta `data/`. Início das séries: `r paste0(redes$nome, " em ", sapply(dados, function(d) fmt_data(min(d$long$data), ano = TRUE)), collapse = "; ")`. Não há dados do 1º turno.
-
-**Redes separadas.** Os números de cada rede são analisados à parte e nunca somados, porque a mesma pessoa pode seguir o candidato em mais de uma rede.
+**Coleta.** O número de seguidores de cada candidato no Instagram é anotado manualmente uma vez por dia, sempre no mesmo horário, na planilha `data/seguidores instagram.xlsx`. A série começa em `r fmt_data(min(dados$instagram$long$data), ano = TRUE)`. Não há dados do 1º turno.
 
 **Saldo diário.** É a diferença de seguidores entre duas coletas seguidas. Se um dia ficar sem coleta, o saldo do intervalo é dividido pelo número de dias, e o gráfico indica "média de N dias".
 

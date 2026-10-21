@@ -1,11 +1,11 @@
 # Seguidores · Governo do RN 2º turno
 
-Painel diário de seguidores no **Instagram** e no **TikTok** dos candidatos ao governo do Rio Grande do Norte no 2º turno de 2026:
+Painel diário de seguidores no **Instagram** dos candidatos ao governo do Rio Grande do Norte no 2º turno de 2026:
 
 - **Cadu de Lula** (PT, 13)
 - **Allyson** (União Brasil, 44)
 
-Cada rede tem sua própria página no painel. Cada página mostra a série de seguidores, o crescimento acumulado, os saldos diário e semanal, a diferença entre os candidatos e estatísticas descritivas. O painel é publicado no GitHub Pages e se atualiza sozinho sempre que uma planilha nova é enviada.
+O painel mostra a série de seguidores, o crescimento acumulado, os saldos diário e semanal, a diferença entre os candidatos e estatísticas descritivas. O painel é publicado no GitHub Pages e se atualiza sozinho sempre que uma planilha nova é enviada.
 
 **Painel:** <https://lfbl-cp.github.io/seguidores-rn/>
 
@@ -15,12 +15,7 @@ Cada rede tem sua própria página no painel. Cada página mostra a série de se
 
 Faça a coleta **uma vez por dia, sempre no mesmo horário** (sugestão: 9h). Assim cada saldo diário cobre 24 horas.
 
-Cada rede tem sua planilha na pasta `data/`:
-
-| Rede | Planilha |
-|---|---|
-| Instagram | `data/seguidores instagram.xlsx` |
-| TikTok | `data/seguidores tiktok.xlsx` |
+A coleta fica na planilha `data/seguidores instagram.xlsx`.
 
 1. Baixe a planilha atual do GitHub: abra o arquivo e clique em **Download raw file**. Não use uma cópia antiga do seu computador, para não perder coletas feitas por outra pessoa.
 2. No Excel, acrescente uma linha no final com a data e os números de cada candidato:
@@ -37,7 +32,7 @@ Cada rede tem sua planilha na pasta `data/`:
 3. Salve **sem mudar o nome do arquivo**.
 4. No GitHub, entre na pasta [`data/`](data), clique em **Add file → Upload files**, arraste a planilha e clique em **Commit changes**. O arquivo com o mesmo nome é substituído.
 
-Uns 3 a 5 minutos depois, o painel publicado já mostra a nova coleta. Para acompanhar, abra a aba **Actions** do repositório. As duas planilhas podem ir juntas no mesmo envio.
+Uns 3 a 5 minutos depois, o painel publicado já mostra a nova coleta. Para acompanhar, abra a aba **Actions** do repositório.
 
 ### Se a atualização falhar
 
@@ -55,9 +50,9 @@ data,evento
 
 ## Incluir outra rede social
 
-1. Crie a planilha `data/seguidores <rede>.xlsx` no mesmo padrão das outras.
+1. Crie a planilha `data/seguidores <rede>.xlsx` no mesmo padrão da planilha do Instagram.
 2. Acrescente uma linha em `data/redes.csv` (id, nome exibido, caminho da planilha).
-3. Em `index.qmd`, copie o bloco de uma rede (o título `# TikTok`, o bloco que define `rd` e o `include`) e troque o id. Faça o mesmo na página **Dados**.
+3. Em `index.qmd`, copie o bloco de uma rede (o título da rede, o bloco que define `rd` e o `include`) e troque o id. Faça o mesmo na página **Dados**.
 
 ## Estrutura
 
